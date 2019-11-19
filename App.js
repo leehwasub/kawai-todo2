@@ -2,6 +2,7 @@ import React from 'react';
 import { StyleSheet, Text, View, StatusBar, TextInput, Dimensions, Platform, ScrollView } from 'react-native';
 import ToDo from "./ToDo";
 import {AppLoading} from "expo";
+import uuidv1 from "uuid/v1";
 
 const {height, width} = Dimensions.get("window");
 
@@ -16,10 +17,7 @@ export default class App extends React.Component {
   }
 
   render(){
-    const {newToDo, loadedToDOs} = this.setState;
-    if(!loadedToDOs){
-      return <AppLoading />;
-    }
+    const {newToDo, loadedToDOs} = this.state;
     return (
       <View style={styles.container}>
         <StatusBar barStyle="light-content" />
@@ -32,7 +30,8 @@ export default class App extends React.Component {
             onChangeText={this._crontolNewToDo}
             placeholderTextColor={"#999"}
             returnKeyType={"done"}
-            autoCorrect={false}>
+            autoCorrect={false}
+            onSubmitEditing={this._addTodo}>
           </TextInput>
           <ScrollView contentContainerStyle={styles.toDos}>
             <ToDo text={"Hello I'm a To Do"}/>
@@ -49,6 +48,31 @@ export default class App extends React.Component {
   _loadToDos = () =>{
     this.setState({loadedToDOs:true});
   }
+  _addTodo = () =>{
+    const {newToDo} = this.state;
+    if(newToDo != ""){
+      this.setState(prevState=>{
+        const ID = uuidv1();
+        const newToDoObject = {
+          [ID]:{
+            id:ID,
+            isCompleted:false,
+            text: newToDo,
+            createdAt: Date.now()
+          }
+        };
+        const newState = {
+          ...prevState,
+          newToDo:"",
+          toDos : {
+            ...prevState.toDos,
+            ...newToDoObject
+          }
+        }
+        return {...newState}
+      });
+    }
+  }
 }
 
 const styles = StyleSheet.create({
@@ -63,7 +87,7 @@ const styles = StyleSheet.create({
     marginTop : 50,
     fontWeight: "400",
     marginBottom: 30
-  },
+  }, 
   card:{
     backgroundColor : "white",
     flex : 1,
